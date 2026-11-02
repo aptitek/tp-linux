@@ -1,0 +1,10 @@
+{
+  "argv": [
+    "/home/aptitek/Documents/Courses/labs/linux/.vscode/docker-kernel.py",
+    "ipykernel_launcher",
+    "{connection_file}"
+  ],
+  "display_name": "Python 3.13 (TP Linux Docker)",
+  "language": "python",
+  "interrupt_mode": "message"
+}

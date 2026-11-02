@@ -1,0 +1,49 @@
+version: '3'
+
+tasks:
+  up:
+    desc: "Build and start the tp-linux container (via docker compose or pure docker CLI fallback)"
+    cmds:
+      - |
+        if [ "$(docker inspect -f '{{ "{{" }}.State.Running{{ "}}" }}' tp-linux 2>/dev/null)" = "true" ]; then
+          exit 0
+        fi
+        if docker compose version >/dev/null 2>&1; then
+          docker compose up -d --build
+        elif command -v docker-compose >/dev/null 2>&1; then
+          docker-compose up -d --build
+        else
+          docker build --target runtime -t tp-linux:local .
+          docker rm -f tp-linux >/dev/null 2>&1 || true
+          docker run -d \
+            --name tp-linux \
+            --user 1000:1000 \
+            -e TERM=xterm-256color \
+            -e COLORTERM=truecolor \
+            -p 8888:8888 \
+            -v "${PWD}/workspace:/home/student/workspace" \
+            -it \
+            --security-opt no-new-privileges:true \
+            --restart unless-stopped \
+            tp-linux:local
+        fi
+
+  down:
+    desc: "Stop and remove the tp-linux container"
+    cmds:
+      - |
+        if docker compose version >/dev/null 2>&1; then
+          docker compose down
+        elif command -v docker-compose >/dev/null 2>&1; then
+          docker-compose down
+        else
+          docker rm -f tp-linux >/dev/null 2>&1 || true
+        fi
+
+  shell:
+    desc: "Open an interactive Fish shell inside the tp-linux container"
+    deps: [up]
+    interactive: true
+    cmds:
+      - docker exec -it tp-linux fish
+

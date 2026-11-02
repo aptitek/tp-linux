@@ -23,6 +23,7 @@
       ],
       "settings": {
         "terminal.integrated.defaultProfile.linux": "fish",
+        "terminal.integrated.fontFamily": "'RecMonoLinear Nerd Font', 'JetBrainsMono Nerd Font', 'CaskaydiaCove Nerd Font', 'MesloLGS Nerd Font', monospace",
         "terminal.integrated.profiles.linux": {
           "fish": {
             "path": "/usr/bin/fish"

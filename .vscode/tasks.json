@@ -4,7 +4,13 @@
     {
       "label": "Démarrer l'environnement Docker TP Linux (Jupyter + Fish)",
       "type": "shell",
-      "command": "docker compose up -d --build",
+      "command": "chmod +x \"${PWD}/.vscode/docker-kernel.py\" && mkdir -p \"${HOME}/.local/share/jupyter/kernels/bash\" \"${HOME}/.local/share/jupyter/kernels/python3\" && sed \"s|/home/aptitek/Documents/Courses/labs/linux|${PWD}|g\" \"${PWD}/.vscode/kernels/bash/kernel.json\" > \"${HOME}/.local/share/jupyter/kernels/bash/kernel.json\" && sed \"s|/home/aptitek/Documents/Courses/labs/linux|${PWD}|g\" \"${PWD}/.vscode/kernels/python3/kernel.json\" > \"${HOME}/.local/share/jupyter/kernels/python3/kernel.json\" && if [ \"$(docker inspect -f '{{.State.Running}}' tp-linux 2>/dev/null)\" = \"true\" ]; then exit 0; fi; if docker compose version >/dev/null 2>&1; then docker compose up -d --build; elif command -v docker-compose >/dev/null 2>&1; then docker-compose up -d --build; else docker build --target runtime -t tp-linux:local . && (docker rm -f tp-linux >/dev/null 2>&1 || true) && docker run -d --name tp-linux --user 1000:1000 -e TERM=xterm-256color -e COLORTERM=truecolor -p 8888:8888 -v \"${PWD}/workspace:/home/student/workspace\" -it --security-opt no-new-privileges:true --restart unless-stopped tp-linux:local; fi",
+      "options": {
+        "shell": {
+          "executable": "bash",
+          "args": ["-c"]
+        }
+      },
       "problemMatcher": [],
       "presentation": {
         "reveal": "silent",
@@ -19,10 +25,32 @@
       "label": "Ouvrir un terminal Fish dans le conteneur TP Linux",
       "type": "shell",
       "command": "docker exec -it tp-linux fish",
+      "options": {
+        "shell": {
+          "executable": "bash",
+          "args": ["-c"]
+        }
+      },
       "problemMatcher": [],
       "presentation": {
         "reveal": "always",
         "panel": "new"
+      }
+    },
+    {
+      "label": "Reconstruire l'environnement Docker TP Linux (--build)",
+      "type": "shell",
+      "command": "if docker compose version >/dev/null 2>&1; then docker compose up -d --build --force-recreate; elif command -v docker-compose >/dev/null 2>&1; then docker-compose up -d --build --force-recreate; else docker build --target runtime -t tp-linux:local . && (docker rm -f tp-linux >/dev/null 2>&1 || true) && docker run -d --name tp-linux --user 1000:1000 -e TERM=xterm-256color -e COLORTERM=truecolor -p 8888:8888 -v \"${PWD}/workspace:/home/student/workspace\" -it --security-opt no-new-privileges:true --restart unless-stopped tp-linux:local; fi",
+      "options": {
+        "shell": {
+          "executable": "bash",
+          "args": ["-c"]
+        }
+      },
+      "problemMatcher": [],
+      "presentation": {
+        "reveal": "always",
+        "panel": "shared"
       }
     }
   ]

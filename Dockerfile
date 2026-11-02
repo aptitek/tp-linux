@@ -112,18 +112,85 @@ RUN curl -fsSL https://mise.run -o /tmp/mise-install.sh \
     && sh /tmp/mise-install.sh \
     && rm -f /tmp/mise-install.sh \
     && mise use --global python@3.13 uv@0.6 \
-    && mise exec -- pip install --no-cache-dir \
+    && mise exec -- uv pip install --system --no-cache-dir \
         bash_kernel \
         ipykernel \
         jupyterlab \
         notebook \
     && mise exec -- python -m bash_kernel.install --user \
     && mise reshim \
-    && rm -rf /home/student/.cache/mise
+    && rm -rf /home/student/.cache/mise /home/student/.cache/uv
 
 RUN xdg-user-dirs-update \
-    && mkdir -p /home/student/.config/fish /home/student/workspace \
+    && mkdir -p /home/student/.config/fish /home/student/.config/fastfetch /home/student/workspace \
     && touch /home/student/.sudo_as_admin_successful \
+    && printf '%s\n' \
+        '{' \
+        '    "$schema": "https://github.com/fastfetch-cli/fastfetch/raw/dev/doc/json_schema.json",' \
+        '    "logo": null,' \
+        '    "display": {' \
+        '        "separator": "  ",' \
+        '        "color": "white",' \
+        '        "constants": ["\u001b[37m", "\u001b[38;2;211;54;130m", "\u001b[38;2;38;139;210m", "\u001b[38;2;133;153;0m"]' \
+        '    },' \
+        '    "modules": [' \
+        '        "break",' \
+        '        {' \
+        '            "type": "custom",' \
+        '            "key": "╭───────────────────────────────────╮"' \
+        '        },' \
+        '        {' \
+        '            "type": "kernel",' \
+        '            "key": "│ {$2}{$1}  kernel",' \
+        '            "format": "{$2}{release>22}{$1} │"' \
+        '        },' \
+        '        {' \
+        '            "type": "command",' \
+        '            "key": "│   uptime",' \
+        '            "text": "uptime -p | cut -d '\'' '\'' -f 2-",' \
+        '            "format": "{>22} │"' \
+        '        },' \
+        '        {' \
+        '            "type": "shell",' \
+        '            "key": "│ {$2}{$1}  shell ",' \
+        '            "format": "{$2}{pretty-name>22}{$1} │"' \
+        '        },' \
+        '        {' \
+        '            "type": "command",' \
+        '            "key": "│ {$3}{$1}  mem   ",' \
+        '            "text": "LC_ALL=C free -m | awk '\''NR==2{printf \"%.2f GiB / %.2f GiB\",$3/1024,$2/1024}'\''",' \
+        '            "format": "{$3}{>22}{$1} │"' \
+        '        },' \
+        '        {' \
+        '            "type": "packages",' \
+        '            "key": "│   pkgs  ",' \
+        '            "format": "{all>22} │"' \
+        '        },' \
+        '        {' \
+        '            "type": "command",' \
+        '            "key": "│ {$2}{$1}  user  ",' \
+        '            "text": "echo $USER",' \
+        '            "format": "{$2}{>22}{$1} │"' \
+        '        },' \
+        '        {' \
+        '            "type": "command",' \
+        '            "key": "│   hname ",' \
+        '            "text": "hostnamectl hostname 2>/dev/null || uname -n",' \
+        '            "format": "{>22} │"' \
+        '        },' \
+        '        {' \
+        '            "type": "os",' \
+        '            "key": "│ {$4}󰻀{$1}  distro",' \
+        '            "format": "{$4}{pretty-name>22}{$1} │"' \
+        '        },' \
+        '        {' \
+        '            "type": "custom",' \
+        '            "key": "╰───────────────────────────────────╯"' \
+        '        },' \
+        '        "break"' \
+        '    ]' \
+        '}' \
+        > /home/student/.config/fastfetch/config.jsonc \
     && printf '%s\n' \
         'mise activate fish | source' \
         'if status is-interactive' \

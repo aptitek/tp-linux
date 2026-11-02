@@ -5,6 +5,7 @@ services:
       dockerfile: Dockerfile
       target: runtime
     container_name: tp-linux
+    hostname: linux
     user: "1000:1000"
     environment:
       - TERM=xterm-256color
@@ -18,7 +19,7 @@ services:
     security_opt:
       - no-new-privileges:true
     healthcheck:
-      test: ["CMD", "python", "-c", "import urllib.request; urllib.request.urlopen('http://127.0.0.1:8888/api')"]
+      test: [ "CMD", "python", "-c", "import urllib.request; urllib.request.urlopen('http://127.0.0.1:8888/api')" ]
       interval: 30s
       timeout: 5s
       start_period: 15s

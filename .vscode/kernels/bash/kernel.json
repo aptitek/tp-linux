@@ -1,0 +1,10 @@
+{
+  "argv": [
+    "/home/aptitek/Documents/Courses/labs/linux/.vscode/docker-kernel.py",
+    "bash_kernel",
+    "{connection_file}"
+  ],
+  "display_name": "Bash (TP Linux Docker)",
+  "language": "bash",
+  "interrupt_mode": "message"
+}
