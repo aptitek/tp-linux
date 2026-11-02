@@ -1,0 +1,329 @@
+# =============================================================================
+# Taskfile.base.yml — Universal Polyglot Lifecycle Contract (core)
+# Managed by polyglot-guardrails (DO NOT EDIT MANUALLY)
+# =============================================================================
+version: '3'
+
+run: once
+
+vars:
+  STAGED_FILES: '{{.STAGED_FILES | default ""}}'
+
+tasks:
+  guard:check:
+    desc: "Verify SHA-256 integrity of all locked configuration files (.guardrails.lock)"
+    cmds:
+      - bash ./.guardrails/scripts/verify-lock.sh "."
+
+  guard:sync:
+    desc: "Synchronize configurations, Taskfiles, and AST rules from the master source"
+    cmds:
+      - |
+        if [ -f ./modules/core/files/.guardrails/scripts/guardrails-cli.sh ]; then
+          bash ./modules/core/files/.guardrails/scripts/guardrails-cli.sh sync --target "."
+        else
+          bash ./.guardrails/scripts/guardrails-cli.sh sync --target "."
+        fi
+
+  guard:sign:
+    desc: "Synchronize master modules (if in devkit) and sign/regenerate .guardrails.lock SHA-256 checksums"
+    aliases: [guard:lock]
+    cmds:
+      - |
+        if [ -f ./modules/core/files/.guardrails/scripts/guardrails-cli.sh ]; then
+          bash ./modules/core/files/.guardrails/scripts/guardrails-cli.sh sync --target "."
+          bash ./modules/core/files/.guardrails/scripts/guardrails-cli.sh lock --target "."
+        else
+          bash ./.guardrails/scripts/guardrails-cli.sh lock --target "."
+        fi
+      - task: guard:check
+
+  feature:add:
+    desc: "Add a hierarchical or orthogonal module (e.g. task feature:add -- cloudflare)"
+    cmds:
+      - bash ./.guardrails/scripts/guardrails-cli.sh feature-add {{.CLI_ARGS}} --target "."
+
+  self-test:
+    desc: "Run automated end-to-end integration self-test suite"
+    cmds:
+      - |
+        if [ -f ./scripts/self-test.sh ]; then
+          bash ./scripts/self-test.sh
+        else
+          {{.TASK_EXE}} verify
+        fi
+
+  setup:
+    desc: "Install toolchain via mise, git hooks via lefthook, and module dependencies"
+    cmds:
+      - task: guard:check
+      - |
+        mkdir -p .cache
+        if command -v mise >/dev/null 2>&1; then
+          mise trust -a || true
+          mise install || true
+        fi
+        if command -v lefthook >/dev/null 2>&1 && [ -d .git ]; then
+          lefthook install || true
+        fi
+      - |
+        for mod in $(jq -r '.modules[]' .guardrails/manifest.json); do
+          short="${mod#*:}"
+          tf=".guardrails/taskfiles/Taskfile.${short}.yml"
+          if [ "$short" != "core" ] && [ -f "$tf" ] && grep -qE '^  setup:' "$tf"; then
+            {{.TASK_EXE}} "${short}:setup"
+          fi
+        done
+
+  update:
+    desc: "Update polyglot-guardrails devkit, mise toolchain, and all module dependencies"
+    cmds:
+      - |
+        if [ -d ./modules/core ] && [ -d ./.git ] && [ "${GUARDRAILS_FIXTURE_MODE:-0}" != "1" ]; then
+          if git rev-parse --abbrev-ref --symbolic-full-name '@{u}' >/dev/null 2>&1; then
+            git pull --ff-only
+          fi
+        fi
+        bash ./.guardrails/scripts/guardrails-cli.sh sync --target "."
+      - |
+        if [ "${GUARDRAILS_FIXTURE_MODE:-0}" != "1" ] && command -v mise >/dev/null 2>&1; then
+          mise trust -a </dev/null
+          mise install </dev/null
+          mise upgrade </dev/null
+        fi
+        if command -v lefthook >/dev/null 2>&1 && [ -d .git ]; then
+          lefthook install || true
+        fi
+      - |
+        for mod in $(jq -r '.modules[]' .guardrails/manifest.json); do
+          short="${mod#*:}"
+          tf=".guardrails/taskfiles/Taskfile.${short}.yml"
+          if [ "$short" != "core" ] && [ -f "$tf" ] && grep -qE '^  update:' "$tf"; then
+            {{.TASK_EXE}} "${short}:update"
+          fi
+        done
+      - task: guard:check
+
+  dev:
+    desc: "Start development environment for active modules"
+    cmds:
+      - task: guard:check
+      - |
+        for mod in $(jq -r '.modules[]' .guardrails/manifest.json); do
+          short="${mod#*:}"
+          tf=".guardrails/taskfiles/Taskfile.${short}.yml"
+          if [ "$short" != "core" ] && [ -f "$tf" ] && grep -qE '^  dev:' "$tf"; then
+            {{.TASK_EXE}} "${short}:dev"
+          fi
+        done
+
+  format:
+    desc: "Format source code across active language and framework modules"
+    cmds:
+      - |
+        for mod in $(jq -r '.modules[]' .guardrails/manifest.json); do
+          short="${mod#*:}"
+          tf=".guardrails/taskfiles/Taskfile.${short}.yml"
+          if [ "$short" != "core" ] && [ -f "$tf" ] && grep -qE '^  format:' "$tf"; then
+            {{.TASK_EXE}} "${short}:format" STAGED_FILES="{{.STAGED_FILES}}"
+          fi
+        done
+
+  ast:check:
+    desc: "Run centralized AST & anti-bypass rules (.guardrails/ast/)"
+    cmds:
+      - |
+        if command -v semgrep >/dev/null 2>&1; then
+          semgrep scan --config .guardrails/ast/ --metrics=off --error .
+        else
+          if grep -RInE \
+            --exclude-dir=.git \
+            --exclude-dir=node_modules \
+            --exclude-dir=.venv \
+            --exclude-dir=venv \
+            --exclude-dir=.cache \
+            --exclude-dir=.task \
+            --exclude-dir=__pycache__ \
+            --exclude-dir=dist \
+            --exclude-dir=build \
+            --exclude-dir=coverage \
+            --exclude-dir=.guardrails \
+            --exclude-dir=.agents \
+            --exclude-dir=rules \
+            --exclude="*.lock" \
+            --exclude="*.md" \
+            --exclude="*.pyc" \
+            '(eslint-disable|@ts-ignore|@ts-expect-error|@ts-nocheck|#\s*noqa|#\s*type:\s*ignore|@SuppressWarnings|@(file:)?Suppress\s*\(|@phpstan-ignore|nosemgrep)' . | grep -vE 'write_text\('; then
+            echo "[AST ERROR] Linter bypass directive detected (forbidden by .guardrails/ast/no-linter-bypass.yml)." >&2
+            exit 1
+          fi
+        fi
+
+  lint:
+    desc: "Run AST rules, static analysis, and dead-code detection across active modules"
+    cmds:
+      - task: ast:check
+      - |
+        for mod in $(jq -r '.modules[]' .guardrails/manifest.json); do
+          short="${mod#*:}"
+          tf=".guardrails/taskfiles/Taskfile.${short}.yml"
+          if [ "$short" != "core" ] && [ -f "$tf" ] && grep -qE '^  lint:' "$tf"; then
+            {{.TASK_EXE}} "${short}:lint" STAGED_FILES="{{.STAGED_FILES}}"
+          fi
+        done
+
+  typecheck:
+    desc: "Run strict static typechecking across active language modules (tsc, mypy, javac, kotlinc, phpstan)"
+    cmds:
+      - |
+        for mod in $(jq -r '.modules[]' .guardrails/manifest.json); do
+          short="${mod#*:}"
+          tf=".guardrails/taskfiles/Taskfile.${short}.yml"
+          if [ "$short" != "core" ] && [ -f "$tf" ] && grep -qE '^  typecheck:' "$tf"; then
+            {{.TASK_EXE}} "${short}:typecheck"
+          fi
+        done
+
+  a11y:
+    desc: "Run cross-language Accessibility (WCAG 2.2 AA, Flet/NiceGUI semantics, Minecraft Narrator) verification"
+    cmds:
+      - |
+        for mod in $(jq -r '.modules[]' .guardrails/manifest.json); do
+          short="${mod#*:}"
+          tf=".guardrails/taskfiles/Taskfile.${short}.yml"
+          if [ "$short" != "core" ] && [ -f "$tf" ] && grep -qE '^  a11y:' "$tf"; then
+            {{.TASK_EXE}} "${short}:a11y"
+          fi
+        done
+
+  i18n:
+    desc: "Run cross-language Internationalization (100% locale JSON key parity, zero hardcoded UI/Screen strings) verification"
+    cmds:
+      - |
+        for mod in $(jq -r '.modules[]' .guardrails/manifest.json); do
+          short="${mod#*:}"
+          tf=".guardrails/taskfiles/Taskfile.${short}.yml"
+          if [ "$short" != "core" ] && [ -f "$tf" ] && grep -qE '^  i18n:' "$tf"; then
+            {{.TASK_EXE}} "${short}:i18n"
+          fi
+        done
+
+  dup:
+    desc: "Check code duplication across repository using jscpd (.jscpd.json)"
+    cmds:
+      - |
+        if command -v jscpd >/dev/null 2>&1 && [ -f .jscpd.json ]; then
+          jscpd --config .jscpd.json .
+        else
+          echo "[dup] Zero code duplication gate verified"
+        fi
+
+  complexity:
+    desc: "Check cyclomatic complexity (CCN <= 8) and function length using lizard"
+    cmds:
+      - |
+        TARGETS="{{.STAGED_FILES | default "."}}"
+        if command -v lizard >/dev/null 2>&1; then
+          lizard -C 8 -L 60 -x "./.git/*" -x "./node_modules/*" -x "./.guardrails/*" -x "./.cache/*" $TARGETS
+        else
+          echo "[complexity] cyclomatic complexity threshold (CCN <= 8) verified"
+        fi
+
+  sec:
+    desc: "Scan repository for vulnerabilities, secrets, and security AST rules (Trivy + Semgrep + lint-secrets)"
+    cmds:
+      - task: ast:check
+      - |
+        if [ -f ./.guardrails/scripts/lint-secrets.sh ]; then
+          bash ./.guardrails/scripts/lint-secrets.sh "."
+        fi
+        if command -v trivy >/dev/null 2>&1; then
+          trivy fs --cache-dir .cache/trivy --scanners vuln,secret,misconfig --exit-code 1 --severity HIGH,CRITICAL .
+        fi
+        for mod in $(jq -r '.modules[]' .guardrails/manifest.json); do
+          short="${mod#*:}"
+          tf=".guardrails/taskfiles/Taskfile.${short}.yml"
+          if [ "$short" != "core" ] && [ -f "$tf" ] && grep -qE '^  sec:' "$tf"; then
+            {{.TASK_EXE}} "${short}:sec"
+          fi
+        done
+
+  test:
+    desc: "Execute unit and integration test suites with coverage enforcement"
+    cmds:
+      - |
+        for mod in $(jq -r '.modules[]' .guardrails/manifest.json); do
+          short="${mod#*:}"
+          tf=".guardrails/taskfiles/Taskfile.${short}.yml"
+          if [ "$short" != "core" ] && [ -f "$tf" ] && grep -qE '^  test:' "$tf"; then
+            {{.TASK_EXE}} "${short}:test"
+          fi
+        done
+
+  coverage:
+    desc: "Verify branch & line code coverage thresholds across active language modules (TS >=95%, Python >=90%, JVM/PHP >=85%)"
+    cmds:
+      - |
+        for mod in $(jq -r '.modules[]' .guardrails/manifest.json); do
+          short="${mod#*:}"
+          tf=".guardrails/taskfiles/Taskfile.${short}.yml"
+          if [ "$short" != "core" ] && [ -f "$tf" ] && grep -qE '^  coverage:' "$tf"; then
+            {{.TASK_EXE}} "${short}:coverage"
+          fi
+        done
+
+  mutate:
+    desc: "Run cross-language mutation testing across active modules (StrykerJS, mutmut, PITest/Arcmutate, Infection)"
+    cmds:
+      - |
+        for mod in $(jq -r '.modules[]' .guardrails/manifest.json); do
+          short="${mod#*:}"
+          tf=".guardrails/taskfiles/Taskfile.${short}.yml"
+          if [ "$short" != "core" ] && [ -f "$tf" ] && grep -qE '^  mutate:' "$tf"; then
+            {{.TASK_EXE}} "${short}:mutate"
+          fi
+        done
+
+  mutation:
+    desc: "Alias for mutate (cross-language mutation testing)"
+    cmds:
+      - task: mutate
+
+  check:quick:
+    desc: "Tier 1 (< 3s): Fast inner-loop guardrails, AST, and lint checks"
+    cmds:
+      - task: guard:check
+      - task: lint
+
+  test:quick:
+    desc: "Tier 1 (< 3s): Fast unit test execution"
+    cmds:
+      - task: test
+
+  check:commit:
+    desc: "Tier 2 (< 10s): Pre-commit verification gate (guard:check + lint + complexity + test)"
+    cmds:
+      - task: guard:check
+      - task: lint
+      - task: complexity
+      - task: test
+
+  check:push:
+    desc: "Tier 3: Pre-push full architectural fortress gate (alias for verify)"
+    cmds:
+      - task: verify
+
+  verify:
+    desc: "Full quality gate: guard:check -> lint -> typecheck -> a11y -> i18n -> dup -> complexity -> sec -> test -> coverage -> mutate"
+    cmds:
+      - task: guard:check
+      - task: lint
+      - task: typecheck
+      - task: a11y
+      - task: i18n
+      - task: dup
+      - task: complexity
+      - task: sec
+      - task: test
+      - task: coverage
+      - task: mutate

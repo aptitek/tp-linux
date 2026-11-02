@@ -1,0 +1,40 @@
+# =============================================================================
+# polyglot-guardrails — Architecture Boundaries & Hygiene Rules (Semgrep)
+# =============================================================================
+rules:
+  - id: guardrails-no-ui-import-in-domain-or-data
+    languages: [typescript, javascript]
+    severity: ERROR
+    message: >-
+      [Architecture Boundary] Domain and Data layers must remain pure and
+      framework-agnostic. Importing from UI/components/pages/views is forbidden.
+    paths:
+      include:
+        - "**/domain/**"
+        - "**/data/**"
+        - "**/repositories/**"
+        - "**/core/**"
+    pattern-regex: 'from\s+[''"]([^''"]*/)?(ui|components|views|pages)(/[^''"]*)?[''"]'
+
+  - id: guardrails-no-console-log
+    languages: [typescript, javascript]
+    severity: ERROR
+    message: >-
+      [Architecture Hygiene] Direct 'console.log' or 'console.debug' calls are
+      forbidden in application code. Use the dedicated structured logger instead.
+    paths:
+      exclude:
+        - "**/logger.*"
+        - "**/*.test.*"
+        - "**/*.spec.*"
+    patterns:
+      - pattern-either:
+          - pattern: console.log(...)
+          - pattern: console.debug(...)
+
+  - id: guardrails-no-debugger-statement
+    languages: [typescript, javascript]
+    severity: ERROR
+    message: >-
+      [Architecture Hygiene] 'debugger' statements are forbidden in committed code.
+    pattern: debugger

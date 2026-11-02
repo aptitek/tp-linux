@@ -1,0 +1,60 @@
+# =============================================================================
+# polyglot-guardrails — Universal Anti-Bypass AST Rules (Semgrep)
+# Strictly forbids suppressing linters, typecheckers, or static analyzers
+# =============================================================================
+rules:
+  - id: guardrails-no-eslint-disable
+    languages: [generic]
+    severity: ERROR
+    message: >-
+      [Guardrails Anti-Bypass] 'eslint-disable' comments are strictly forbidden.
+      Fix the underlying code issue instead of silencing the linter.
+    pattern-regex: '(//|/\*|\{#|<!--)\s*eslint-disable(-next-line|-line)?\b'
+
+  - id: guardrails-no-ts-ignore-or-expect-error
+    languages: [generic]
+    severity: ERROR
+    message: >-
+      [Guardrails Anti-Bypass] '@ts-ignore', '@ts-expect-error', and '@ts-nocheck'
+      are strictly forbidden. Fix the TypeScript type mismatch properly.
+    pattern-regex: '(//|/\*)\s*@ts-(ignore|expect-error|nocheck)\b'
+
+  - id: guardrails-no-python-noqa-or-type-ignore
+    languages: [generic]
+    severity: ERROR
+    message: >-
+      [Guardrails Anti-Bypass] '# noqa' and '# type: ignore' comments are strictly
+      forbidden. Fix the Ruff or typing violation directly.
+    pattern-regex: '#\s*(noqa|type:\s*ignore)\b'
+
+  - id: guardrails-no-java-suppress-warnings
+    languages: [generic]
+    severity: ERROR
+    message: >-
+      [Guardrails Anti-Bypass] '@SuppressWarnings' annotations are strictly
+      forbidden. Address the compiler, Checkstyle, or PMD warning directly.
+    pattern-regex: '@SuppressWarnings\s*\('
+
+  - id: guardrails-no-kotlin-suppress
+    languages: [generic]
+    severity: ERROR
+    message: >-
+      [Guardrails Anti-Bypass] '@Suppress' and '@file:Suppress' annotations are
+      strictly forbidden. Refactor the Kotlin code to satisfy Detekt and K2 compiler rules.
+    pattern-regex: '@(file:)?Suppress\s*\('
+
+  - id: guardrails-no-php-phpstan-ignore
+    languages: [generic]
+    severity: ERROR
+    message: >-
+      [Guardrails Anti-Bypass] '@phpstan-ignore' annotations are strictly
+      forbidden. Fix the PHPStan static analysis issue directly.
+    pattern-regex: '@phpstan-ignore(-next-line|-line)?\b'
+
+  - id: guardrails-no-nosemgrep
+    languages: [generic]
+    severity: ERROR
+    message: >-
+      [Guardrails Anti-Bypass] 'nosemgrep' suppression comments are strictly
+      forbidden by polyglot-guardrails.
+    pattern-regex: '(//|/\*|#)\s*nosemgrep\b'

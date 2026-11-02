@@ -1,0 +1,29 @@
+# =============================================================================
+# .guardrails.lock — DO NOT EDIT MANUALLY (Zero Config Drift)
+# Managed automatically by polyglot-guardrails ('task guard:sync').
+# =============================================================================
+f469c70de82504052c2762ceae5d958e7dafa3e007b66482201f7360c72087b4  .agents/rules/quality-gates-and-architecture.md
+d40a0ab964e8e3be28a0edb81c91bd5152b2060c6777458eb0418f0cf9cb06a8  .agents/skills/clean-code-guard/SKILL.md
+002fa2a1b24d74c497ed94a2fe06bc4ea974c046e68e061a7d95018cf004af7d  .agents/skills/commit/SKILL.md
+0657212fff6f51b5544210d18e3399ef9057f6c418564f0a1a3ce9ab26326985  .agents/skills/docker-expert/SKILL.md
+fc2ff3abfcbbc59e858d3a99b4adf9b34fbaa1a89700d9ea4e29ae554af3d19e  .agents/skills/docker-expert/references/dockerfile-and-compose.md
+e1ca90f7b3bfec517e09b26579344cbfe5aa464fa2eedddb34008e6356629512  .agents/skills/i-have-adhd/SKILL.md
+032614aa2008bc2101d19c5ef44f8fc8444f16955b09db3d518ca4bb2549f2cc  .agents/skills/vibe-guardrails/SKILL.md
+97a6acff178e280ba80a55dfb8ff6d1d4f3df7ca91bb6a435f529c7b0f47872d  .gitattributes
+8a4f23277a4af48a8ef99cc30c6145d1464320524f31270e908694ce69dd0cf8  .gitignore
+c002165169f8e71bde5a1dc0203d3af002c5f9cfb2f8ab7d26e8948e5203bf46  .guardrails/ast/architecture-boundaries.yml
+138fa124ac252b94704de494b686b432a928d19800a244f159ff215688c3db0f  .guardrails/ast/docker.yml
+de2b09eb49f83cadb2fd041aa460a35c6eaba22c82e8ac492d5211b870bd0a14  .guardrails/ast/no-linter-bypass.yml
+71156d50ef1b3f44614938289e1cfbd6bef2d9043568ecafd140f2f9e6b401df  .guardrails/commit-scopes.json
+1b3ae814dbfdc62cae3fce4834cc84ef1c5378197bd3fc78a87274fca879b321  .guardrails/manifest.json
+09e0744b7bf9068f0618868cfc50cf50be950546e9ae994a5a98ece0fc66af5f  .guardrails/scripts/guardrails-cli.sh
+077c90e652bb4747e15f2fcd8a7497b6bec6e560b59be2b0a9f37476a67efb8a  .guardrails/scripts/lint-secrets.sh
+0b68cc3b569db1ea20a96b6b5da0bac6c034e84d5cc6cfbbd51ed19578611435  .guardrails/scripts/validate-docker.sh
+7b3b9df434bbda7d5389aff1fc4c39110d2f26f2a533fd0b362707284bd3e82d  .guardrails/scripts/verify-lock.sh
+8a2551446d35699fd7b5d94778933b9aea38bca0c894fa9dac91cd24333cde20  .guardrails/taskfiles/Taskfile.base.yml
+1b7f3f62fd9b99baa99e6a3ddaf049ab0ebfa02f4294e94d473037d020d125aa  .guardrails/taskfiles/Taskfile.docker.yml
+a1f5e73664366b39140922af0af845ae66d73c7193b9a336359d93420f5df014  .hadolint.yaml
+ae9e91aeaac53c5d3907d89f48776efd81144e682747c85abac16b216c179b42  AGENTS.md
+c341f460f7ea1724a415ea64ae0585bdae6a3c718e0077f5b5c4bdd1c154102d  Taskfile.yml
+e795d523a385975aec68ff3f359ceccd2079ab133ba0ad25fce2e5f5ab6b3a62  lefthook.yml
+d172b3f9fe32715ba50eecbe04ff68cb2b08b4b200a1b15b22cad903cda2355e  mise.toml

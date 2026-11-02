@@ -1,0 +1,18 @@
+# =============================================================================
+# .hadolint.yaml — Strict Dockerfile AST & ShellCheck Linter Configuration
+# Managed by polyglot-guardrails (DO NOT EDIT MANUALLY)
+# =============================================================================
+failure-threshold: warning
+strict-labels: true
+disable-ignore-pragma: true
+ignored: []
+override:
+  error:
+    - DL3000 # Use absolute WORKDIR
+    - DL3002 # Last USER should not be root
+    - DL3004 # Do not use sudo
+    - DL3006 # Always tag the version of an image explicitly
+    - DL3007 # Using latest is prone to errors
+    - DL3020 # Use COPY instead of ADD for files and folders
+    - DL3025 # Use arguments JSON notation for CMD and ENTRYPOINT arguments
+    - DL4006 # Set the SHELL option -o pipefail before RUN with a pipe in it

@@ -1,0 +1,45 @@
+# =============================================================================
+# Taskfile.docker.yml — Docker & Compose Validation, Security & Testing Tasks (addon:docker)
+# Tools: validate-docker.sh, hadolint (.hadolint.yaml), docker compose, buildx, dockle
+# Managed by polyglot-guardrails (DO NOT EDIT MANUALLY)
+# =============================================================================
+version: '3'
+
+tasks:
+  lint:
+    desc: "Validate Dockerfile, .dockerignore & Compose AST, security & instruction hygiene (validate-docker.sh + hadolint)"
+    cmds:
+      - bash .guardrails/scripts/validate-docker.sh --lint .
+      - |
+        if command -v hadolint >/dev/null 2>&1; then
+          while IFS= read -r -d '' df; do
+            hadolint --config .hadolint.yaml "$df"
+          done < <(find . -type d \( -name ".git" -o -name "node_modules" -o -name ".venv" -o -name ".guardrails" -o -name "modules" -o -name ".cache" \) -prune -o -type f \( -name "Dockerfile" -o -name "Dockerfile.*" -o -name "*.Dockerfile" \) -print0)
+        fi
+
+  sec:
+    desc: "Run container & Compose security hardening verification (non-root USER, no-new-privileges, secret & socket gates)"
+    cmds:
+      - bash .guardrails/scripts/validate-docker.sh --sec .
+      - |
+        if [ -n "${DOCKER_IMAGE:-}" ] && command -v dockle >/dev/null 2>&1; then
+          dockle --exit-code 1 "${DOCKER_IMAGE}"
+        fi
+
+  test:
+    desc: "Test Dockerfile multi-stage references, Compose dependency DAG, build targets, and container-structure-test specs"
+    cmds:
+      - bash .guardrails/scripts/validate-docker.sh --test .
+      - |
+        if [ "${GUARDRAILS_FIXTURE_MODE:-0}" != "1" ] && command -v docker >/dev/null 2>&1; then
+          if docker compose version >/dev/null 2>&1; then
+            while IFS= read -r -d '' cf; do
+              docker compose -f "$cf" config --quiet
+            done < <(find . -type d \( -name ".git" -o -name "node_modules" -o -name ".venv" -o -name ".guardrails" -o -name "modules" -o -name ".cache" \) -prune -o -type f \( -name "compose.yaml" -o -name "compose.yml" -o -name "docker-compose.yml" -o -name "docker-compose.yaml" \) -print0)
+          fi
+        fi
+        if [ -n "${DOCKER_IMAGE:-}" ] && command -v container-structure-test >/dev/null 2>&1; then
+          while IFS= read -r -d '' cst; do
+            container-structure-test test --image "${DOCKER_IMAGE}" --config "$cst"
+          done < <(find . -type d \( -name ".git" -o -name "node_modules" -o -name ".venv" -o -name ".guardrails" -o -name "modules" -o -name ".cache" \) -prune -o -type f \( -name "container-structure-test*.yaml" -o -name "container-structure-test*.yml" -o -name "container-structure-test*.json" \) -print0)
+        fi

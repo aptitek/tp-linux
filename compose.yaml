@@ -1,0 +1,26 @@
+services:
+  tp-linux:
+    build:
+      context: .
+      dockerfile: Dockerfile
+      target: runtime
+    container_name: tp-linux
+    user: "1000:1000"
+    environment:
+      - TERM=xterm-256color
+      - COLORTERM=truecolor
+    ports:
+      - "8888:8888"
+    volumes:
+      - ./workspace:/home/student/workspace
+    tty: true
+    stdin_open: true
+    security_opt:
+      - no-new-privileges:true
+    healthcheck:
+      test: ["CMD", "python", "-c", "import urllib.request; urllib.request.urlopen('http://127.0.0.1:8888/api')"]
+      interval: 30s
+      timeout: 5s
+      start_period: 15s
+      retries: 3
+    restart: unless-stopped

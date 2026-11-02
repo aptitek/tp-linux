@@ -1,0 +1,25 @@
+# =============================================================================
+# .gitignore — Managed by polyglot-guardrails (DO NOT EDIT MANUALLY)
+# Active modules: core addon:docker
+# For project-specific ignore rules, create '.gitignore.local'.
+# =============================================================================
+
+# --- Module: core ---
+.DS_Store
+Thumbs.db
+*.log
+*.tmp
+*.swp
+*~
+.env
+.env.*
+!.env.example
+!.env.template
+tmp/
+reports/
+.cache/
+.task/
+
+# --- Module: addon:docker ---
+.docker-volumes/
+*.tar

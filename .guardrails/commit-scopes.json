@@ -1,0 +1,15 @@
+[
+  "ci",
+  "compose",
+  "config",
+  "container",
+  "core",
+  "deps",
+  "docker",
+  "docs",
+  "guardrails",
+  "lint",
+  "scripts",
+  "security",
+  "test"
+]

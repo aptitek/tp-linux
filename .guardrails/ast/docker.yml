@@ -1,0 +1,58 @@
+# =============================================================================
+# docker.yml — Semgrep AST Rules for Dockerfiles & Docker Compose (addon:docker)
+# Enforces:
+#   - Zero Hadolint / BuildKit linter bypass pragmas
+#   - Zero unpinned :latest image tags in Dockerfile and Compose
+#   - Zero root USER / privileged containers / docker.sock mounts / host namespaces
+# Managed by polyglot-guardrails (DO NOT EDIT MANUALLY)
+# =============================================================================
+rules:
+  - id: guardrails-docker-no-hadolint-ignore
+    languages: [generic]
+    severity: ERROR
+    paths:
+      include:
+        - "*Dockerfile*"
+        - "*Containerfile*"
+    message: >-
+      [DOCKER AST GATE] Suppressing Dockerfile checks via '# hadolint ignore='
+      or '# check=skip=' is strictly forbidden.
+    pattern-regex: '#\s*(hadolint\s+ignore|check\s*=\s*skip)\s*='
+
+  - id: guardrails-docker-no-latest-tag
+    languages: [generic]
+    severity: ERROR
+    paths:
+      include:
+        - "*Dockerfile*"
+        - "*Containerfile*"
+        - "*compose*.yml"
+        - "*compose*.yaml"
+    message: >-
+      [DOCKER AST GATE] Unpinned ':latest' image tags are forbidden. Pin an
+      explicit semantic version tag or immutable '@sha256:...' digest.
+    pattern-regex: '(?i)^\s*(FROM|image\s*:)\s+[^\s#]+:latest\b'
+
+  - id: guardrails-docker-no-privileged-compose
+    languages: [generic]
+    severity: ERROR
+    paths:
+      include:
+        - "*compose*.yml"
+        - "*compose*.yaml"
+    message: >-
+      [COMPOSE AST GATE] 'privileged: true' is strictly forbidden in Docker Compose
+      services. Grant only minimal Linux capabilities if required.
+    pattern-regex: '(?i)^\s*privileged\s*:\s*(true|"true"|''true'')\b'
+
+  - id: guardrails-docker-no-docker-sock-mount
+    languages: [generic]
+    severity: ERROR
+    paths:
+      include:
+        - "*compose*.yml"
+        - "*compose*.yaml"
+    message: >-
+      [COMPOSE AST GATE] Mounting '/var/run/docker.sock' inside a container is
+      forbidden (root-equivalent host escape risk).
+    pattern-regex: '/var/run/docker\.sock'

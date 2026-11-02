@@ -1,0 +1,36 @@
+{
+  "name": "TP Linux Ubuntu 26.04 (Student)",
+  "dockerComposeFile": ["../compose.yaml"],
+  "service": "tp-linux",
+  "workspaceFolder": "/home/student/workspace",
+  "remoteUser": "student",
+  "updateRemoteUserUID": true,
+  "forwardPorts": [8888],
+  "portsAttributes": {
+    "8888": {
+      "label": "JupyterLab (Bash & Python via mise)",
+      "onAutoForward": "silent"
+    }
+  },
+  "customizations": {
+    "vscode": {
+      "extensions": [
+        "ms-toolsai.jupyter",
+        "ms-toolsai.jupyter-keymap",
+        "ms-toolsai.jupyter-renderers",
+        "ms-python.python",
+        "hverlin.mise-vscode"
+      ],
+      "settings": {
+        "terminal.integrated.defaultProfile.linux": "fish",
+        "terminal.integrated.profiles.linux": {
+          "fish": {
+            "path": "/usr/bin/fish"
+          }
+        },
+        "python.defaultInterpreterPath": "/home/student/.local/share/mise/shims/python",
+        "jupyter.jupyterServerType": "local"
+      }
+    }
+  }
+}

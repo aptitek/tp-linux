@@ -1,0 +1,33 @@
+# =============================================================================
+# lefthook.yml — Git Hooks Guardrails (Compiled by polyglot-guardrails)
+# Dynamically compiled commit scopes from active modules in manifest.json.
+# Managed by polyglot-guardrails (DO NOT EDIT MANUALLY)
+# =============================================================================
+commit-msg:
+  commands:
+    commitlint:
+      run: |
+        MSG_FILE="{1}"
+        if [ -f "$MSG_FILE" ]; then
+          HEADER=$(head -n 1 "$MSG_FILE")
+          if [ "${#HEADER}" -gt 100 ] || ! echo "$HEADER" | grep -E -q '^(feat|fix|docs|style|refactor|perf|test|build|ci|chore|revert)\((ci|compose|config|container|core|deps|docker|docs|guardrails|lint|scripts|security|test)\): .{14,99}[^.]$'; then
+            echo "[COMMITLINT ERROR] Commit header must be <= 100 chars, not end with '.', and match '<type>(<scope>): <subject (>= 15 chars)>' with an allowed architectural scope (ci|compose|config|container|core|deps|docker|docs|guardrails|lint|scripts|security|test)." >&2
+            exit 1
+          fi
+        fi
+
+pre-commit:
+  parallel: false
+  commands:
+    guard-check:
+      run: $(command -v task || command -v go-task) guard:check
+    format-and-lint:
+      run: $(command -v task || command -v go-task) format lint STAGED_FILES="{staged_files}"
+    complexity:
+      run: $(command -v task || command -v go-task) complexity STAGED_FILES="{staged_files}"
+
+pre-push:
+  parallel: false
+  commands:
+    verify:
+      run: $(command -v task || command -v go-task) verify

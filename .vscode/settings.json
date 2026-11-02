@@ -1,0 +1,38 @@
+{
+  "terminal.integrated.profiles.linux": {
+    "TP Linux (Docker Fish)": {
+      "path": "bash",
+      "args": [
+        "-c",
+        "docker inspect -f '{{.State.Running}}' tp-linux >/dev/null 2>&1 || docker compose up -d --build; exec docker exec -it tp-linux fish"
+      ],
+      "icon": "terminal-linux"
+    }
+  },
+  "terminal.integrated.profiles.osx": {
+    "TP Linux (Docker Fish)": {
+      "path": "bash",
+      "args": [
+        "-c",
+        "docker inspect -f '{{.State.Running}}' tp-linux >/dev/null 2>&1 || docker compose up -d --build; exec docker exec -it tp-linux fish"
+      ],
+      "icon": "terminal-linux"
+    }
+  },
+  "terminal.integrated.profiles.windows": {
+    "TP Linux (Docker Fish)": {
+      "path": "cmd.exe",
+      "args": [
+        "/c",
+        "docker inspect -f \"{{.State.Running}}\" tp-linux >nul 2>&1 || docker compose up -d --build && docker exec -it tp-linux fish"
+      ],
+      "icon": "terminal-linux"
+    }
+  },
+  "terminal.integrated.defaultProfile.linux": "TP Linux (Docker Fish)",
+  "terminal.integrated.defaultProfile.osx": "TP Linux (Docker Fish)",
+  "terminal.integrated.defaultProfile.windows": "TP Linux (Docker Fish)",
+  "python.defaultInterpreterPath": "/home/student/.local/share/mise/shims/python",
+  "jupyter.jupyterServerType": "local",
+  "task.allowAutomaticTasks": "on"
+}
