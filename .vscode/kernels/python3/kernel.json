@@ -1,6 +1,6 @@
 {
   "argv": [
-    "/home/aptitek/Documents/Courses/labs/linux/.vscode/docker-kernel.py",
+    "../docker-kernel.py",
     "ipykernel_launcher",
     "{connection_file}"
   ],
