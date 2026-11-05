@@ -1,0 +1,38 @@
+schemaVersion: "2.0.0"
+
+metadataTest:
+  user: "student"
+  workdir: "/home/student"
+  exposedPorts: ["8888"]
+
+fileExistenceTests:
+  - name: "Bash binary exists at /usr/bin/bash"
+    path: "/usr/bin/bash"
+    shouldExist: true
+  - name: "Fish binary exists at /usr/bin/fish"
+    path: "/usr/bin/fish"
+    shouldExist: true
+  - name: "Bash Jupyter kernelspec exists"
+    path: "/home/student/.local/share/jupyter/kernels/bash/kernel.json"
+    shouldExist: true
+  - name: "Fish Jupyter kernelspec exists"
+    path: "/home/student/.local/share/jupyter/kernels/fish/kernel.json"
+    shouldExist: true
+  - name: "Python3 Jupyter kernelspec exists"
+    path: "/home/student/.local/share/jupyter/kernels/python3/kernel.json"
+    shouldExist: true
+
+commandTests:
+  - name: "Non-root student user UID 1000"
+    command: "id"
+    args: ["-u"]
+    expectedOutput: ["1000"]
+  - name: "Jupyter kernelspecs registered for bash, fish, and python3"
+    command: "/usr/bin/bash"
+    args: ["-lc", "jupyter kernelspec list"]
+    expectedOutput: [".*bash.*", ".*fish.*", ".*python3.*"]
+  - name: "Interactive Fish login shell starts cleanly"
+    command: "/usr/bin/fish"
+    args: ["-lc", "which mise python uv jupyter"]
+    exitCode: 0
+

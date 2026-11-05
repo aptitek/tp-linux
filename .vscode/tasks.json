@@ -2,51 +2,49 @@
   "version": "2.0.0",
   "tasks": [
     {
-      "label": "Démarrer l'environnement Docker TP Linux (Jupyter + Fish)",
+      "label": "Provisionner / Mettre à jour le poste (Chocolatey + WSL2 + Docker + Mise + Taskfile)",
       "type": "shell",
-      "command": "chmod +x \"${PWD}/.vscode/docker-kernel.py\" && mkdir -p \"${HOME}/.local/share/jupyter/kernels/bash\" \"${HOME}/.local/share/jupyter/kernels/python3\" && sed \"s|/home/aptitek/Documents/Courses/labs/linux|${PWD}|g\" \"${PWD}/.vscode/kernels/bash/kernel.json\" > \"${HOME}/.local/share/jupyter/kernels/bash/kernel.json\" && sed \"s|/home/aptitek/Documents/Courses/labs/linux|${PWD}|g\" \"${PWD}/.vscode/kernels/python3/kernel.json\" > \"${HOME}/.local/share/jupyter/kernels/python3/kernel.json\" && if [ \"$(docker inspect -f '{{.State.Running}}' tp-linux 2>/dev/null)\" = \"true\" ]; then exit 0; fi; if docker compose version >/dev/null 2>&1; then docker compose up -d --build; elif command -v docker-compose >/dev/null 2>&1; then docker-compose up -d --build; else docker build --target runtime -t tp-linux:local . && (docker rm -f tp-linux >/dev/null 2>&1 || true) && docker run -d --name tp-linux --user 1000:1000 -e TERM=xterm-256color -e COLORTERM=truecolor -p 8888:8888 -v \"${PWD}/workspace:/home/student/workspace\" -it --security-opt no-new-privileges:true --restart unless-stopped tp-linux:local; fi",
-      "options": {
-        "shell": {
-          "executable": "bash",
-          "args": ["-c"]
-        }
-      },
-      "problemMatcher": [],
-      "presentation": {
-        "reveal": "silent",
-        "panel": "shared",
-        "close": true
-      },
-      "runOptions": {
-        "runOn": "folderOpen"
-      }
-    },
-    {
-      "label": "Ouvrir un terminal Fish dans le conteneur TP Linux",
-      "type": "shell",
-      "command": "docker exec -it tp-linux fish",
-      "options": {
-        "shell": {
-          "executable": "bash",
-          "args": ["-c"]
-        }
+      "command": "bash ./setup.sh",
+      "windows": {
+        "command": "powershell.exe",
+        "args": [
+          "-NoProfile",
+          "-ExecutionPolicy",
+          "Bypass",
+          "-File",
+          "${workspaceFolder}/setup.ps1"
+        ]
       },
       "problemMatcher": [],
       "presentation": {
         "reveal": "always",
-        "panel": "new"
+        "panel": "shared"
       }
     },
     {
-      "label": "Reconstruire l'environnement Docker TP Linux (--build)",
+      "label": "Démarrer / Dépauser Docker Desktop et le conteneur TP Linux (task local:up)",
       "type": "shell",
-      "command": "if docker compose version >/dev/null 2>&1; then docker compose up -d --build --force-recreate; elif command -v docker-compose >/dev/null 2>&1; then docker-compose up -d --build --force-recreate; else docker build --target runtime -t tp-linux:local . && (docker rm -f tp-linux >/dev/null 2>&1 || true) && docker run -d --name tp-linux --user 1000:1000 -e TERM=xterm-256color -e COLORTERM=truecolor -p 8888:8888 -v \"${PWD}/workspace:/home/student/workspace\" -it --security-opt no-new-privileges:true --restart unless-stopped tp-linux:local; fi",
-      "options": {
-        "shell": {
-          "executable": "bash",
-          "args": ["-c"]
-        }
+      "command": "bash ./scripts/ensure-docker.sh && task local:up",
+      "windows": {
+        "command": "powershell.exe",
+        "args": [
+          "-NoProfile",
+          "-ExecutionPolicy",
+          "Bypass",
+          "-Command",
+          "& \"${workspaceFolder}/scripts/ensure-docker.ps1\"; if ($LASTEXITCODE -eq 0) { task local:up }"
+        ]
       },
+      "problemMatcher": [],
+      "presentation": {
+        "reveal": "always",
+        "panel": "shared"
+      }
+    },
+    {
+      "label": "Vérifier l'environnement et la qualité (task verify)",
+      "type": "shell",
+      "command": "task verify",
       "problemMatcher": [],
       "presentation": {
         "reveal": "always",

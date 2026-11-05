@@ -1,11 +1,25 @@
 version: '3'
 
 tasks:
+  provision:
+    desc: "Provision and update host tools (Chocolatey on Windows 11, WSL2, Docker Desktop, Git, Mise, VS Code, Taskfile)"
+    cmds:
+      - bash ./setup.sh
+
+  docker:ready:
+    desc: "Ensure Docker Desktop / daemon is configured, started, and unpaused"
+    cmds:
+      - bash ./scripts/ensure-docker.sh
+
   up:
-    desc: "Build and start the tp-linux container (via docker compose or pure docker CLI fallback)"
+    desc: "Ensure Docker is running/unpaused, then build and start the tp-linux container"
+    deps: [docker:ready]
     cmds:
       - |
         if [ "$(docker inspect -f '{{ "{{" }}.State.Running{{ "}}" }}' tp-linux 2>/dev/null)" = "true" ]; then
+          if [ "$(docker inspect -f '{{ "{{" }}.State.Paused{{ "}}" }}' tp-linux 2>/dev/null)" = "true" ]; then
+            docker unpause tp-linux
+          fi
           exit 0
         fi
         if docker compose version >/dev/null 2>&1; then
@@ -21,7 +35,7 @@ tasks:
             -e TERM=xterm-256color \
             -e COLORTERM=truecolor \
             -p 8888:8888 \
-            -v "${PWD}/workspace:/home/student/workspace" \
+            -v "${PWD}:/home/student/workspace" \
             -it \
             --security-opt no-new-privileges:true \
             --restart unless-stopped \
@@ -45,5 +59,14 @@ tasks:
     deps: [up]
     interactive: true
     cmds:
-      - docker exec -it tp-linux fish
+      - docker exec -it tp-linux /usr/bin/fish -l
 
+  notebook:test:
+    desc: "Execute end-to-end tests of tp.ipynb (Bash kernel), Fish kernel, and Fish interactive shell inside tp-linux"
+    deps: [up]
+    cmds:
+      - docker exec tp-linux /usr/bin/bash -lc 'test -x /usr/bin/bash && test -x /usr/bin/fish && jupyter kernelspec list'
+      - docker exec tp-linux /usr/bin/fish -lc 'which mise python uv jupyter fastfetch eza bat'
+      - docker exec -w /home/student/workspace tp-linux jupyter nbconvert --to notebook --execute --ExecutePreprocessor.timeout=60 --stdout tp.ipynb >/dev/null
+      - docker exec -w /home/student/workspace tp-linux jupyter nbconvert --to notebook --execute --ExecutePreprocessor.kernel_name=fish --ExecutePreprocessor.timeout=60 --stdout tp.ipynb >/dev/null
+      - docker exec -w /home/student/workspace tp-linux jupyter nbconvert --to notebook --execute --ExecutePreprocessor.timeout=60 --stdout workspace/tp-linux.ipynb >/dev/null

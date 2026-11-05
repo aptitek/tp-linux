@@ -1,36 +1,70 @@
 {
   "name": "TP Linux Ubuntu 26.04 (Student)",
-  "dockerComposeFile": ["../compose.yaml"],
-  "service": "tp-linux",
+  "initializeCommand": "powershell -NoProfile -ExecutionPolicy Bypass -File scripts/ensure-docker.ps1 || sh scripts/ensure-docker.sh",
+  "build": {
+    "dockerfile": "../Dockerfile",
+    "context": "..",
+    "target": "runtime"
+  },
   "workspaceFolder": "/home/student/workspace",
+  "workspaceMount": "source=${localWorkspaceFolder},target=/home/student/workspace,type=bind",
+  "runArgs": [
+    "--hostname=linux",
+    "--security-opt=no-new-privileges:true"
+  ],
+  "containerEnv": {
+    "TERM": "xterm-256color",
+    "COLORTERM": "truecolor"
+  },
   "remoteUser": "student",
   "updateRemoteUserUID": true,
   "forwardPorts": [8888],
   "portsAttributes": {
     "8888": {
-      "label": "JupyterLab (Bash & Python via mise)",
+      "label": "JupyterLab (Bash, Fish & Python via mise)",
       "onAutoForward": "silent"
     }
   },
+  "postStartCommand": "mise reshim && jupyter kernelspec list",
   "customizations": {
     "vscode": {
       "extensions": [
         "ms-toolsai.jupyter",
         "ms-toolsai.jupyter-keymap",
         "ms-toolsai.jupyter-renderers",
+        "ms-toolsai.vscode-jupyter-cell-tags",
+        "ms-toolsai.vscode-jupyter-slideshow",
         "ms-python.python",
-        "hverlin.mise-vscode"
+        "ms-python.vscode-pylance",
+        "hverlin.mise-vscode",
+        "task.vscode-task",
+        "bmalehorn.vscode-fish",
+        "timonwong.shellcheck",
+        "foxundermoon.shell-format",
+        "mads-hartmann.bash-ide-vscode",
+        "exiasr.hadolint",
+        "redhat.vscode-yaml",
+        "eamodio.gitlens"
       ],
       "settings": {
         "terminal.integrated.defaultProfile.linux": "fish",
         "terminal.integrated.fontFamily": "'RecMonoLinear Nerd Font', 'JetBrainsMono Nerd Font', 'CaskaydiaCove Nerd Font', 'MesloLGS Nerd Font', monospace",
         "terminal.integrated.profiles.linux": {
           "fish": {
-            "path": "/usr/bin/fish"
+            "path": "/usr/bin/fish",
+            "args": ["-l"],
+            "icon": "terminal-linux"
+          },
+          "bash": {
+            "path": "/usr/bin/bash",
+            "args": ["-l"],
+            "icon": "terminal-bash"
           }
         },
         "python.defaultInterpreterPath": "/home/student/.local/share/mise/shims/python",
-        "jupyter.jupyterServerType": "local"
+        "jupyter.jupyterServerType": "local",
+        "extensions.autoUpdate": true,
+        "extensions.autoCheckUpdates": true
       }
     }
   }

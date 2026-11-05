@@ -13,7 +13,7 @@ services:
     ports:
       - "8888:8888"
     volumes:
-      - ./workspace:/home/student/workspace
+      - .:/home/student/workspace
     tty: true
     stdin_open: true
     security_opt:

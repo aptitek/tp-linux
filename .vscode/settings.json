@@ -1,44 +1,20 @@
 {
-  "terminal.integrated.automationProfile.linux": {
-    "path": "bash"
-  },
-  "terminal.integrated.automationProfile.osx": {
-    "path": "bash"
-  },
+  "terminal.integrated.defaultProfile.linux": "fish",
   "terminal.integrated.profiles.linux": {
-    "TP Linux (Docker Fish)": {
-      "path": "bash",
-      "args": [
-        "-c",
-        "if [ \"$(docker inspect -f '{{.State.Running}}' tp-linux 2>/dev/null)\" != \"true\" ]; then if docker inspect tp-linux >/dev/null 2>&1; then docker start tp-linux >/dev/null; elif docker compose version >/dev/null 2>&1; then docker compose up -d --build; elif command -v docker-compose >/dev/null 2>&1; then docker-compose up -d --build; else docker build --target runtime -t tp-linux:local . && docker run -d --name tp-linux --user 1000:1000 -e TERM=xterm-256color -e COLORTERM=truecolor -p 8888:8888 -v \"${PWD}/workspace:/home/student/workspace\" -it --security-opt no-new-privileges:true --restart unless-stopped tp-linux:local; fi; fi && exec docker exec -it tp-linux fish"
-      ],
+    "fish": {
+      "path": "/usr/bin/fish",
+      "args": ["-l"],
       "icon": "terminal-linux"
+    },
+    "bash": {
+      "path": "/usr/bin/bash",
+      "args": ["-l"],
+      "icon": "terminal-bash"
     }
   },
-  "terminal.integrated.profiles.osx": {
-    "TP Linux (Docker Fish)": {
-      "path": "bash",
-      "args": [
-        "-c",
-        "if [ \"$(docker inspect -f '{{.State.Running}}' tp-linux 2>/dev/null)\" != \"true\" ]; then if docker inspect tp-linux >/dev/null 2>&1; then docker start tp-linux >/dev/null; elif docker compose version >/dev/null 2>&1; then docker compose up -d --build; elif command -v docker-compose >/dev/null 2>&1; then docker-compose up -d --build; else docker build --target runtime -t tp-linux:local . && docker run -d --name tp-linux --user 1000:1000 -e TERM=xterm-256color -e COLORTERM=truecolor -p 8888:8888 -v \"${PWD}/workspace:/home/student/workspace\" -it --security-opt no-new-privileges:true --restart unless-stopped tp-linux:local; fi; fi && exec docker exec -it tp-linux fish"
-      ],
-      "icon": "terminal-linux"
-    }
-  },
-  "terminal.integrated.profiles.windows": {
-    "TP Linux (Docker Fish)": {
-      "path": "cmd.exe",
-      "args": [
-        "/c",
-        "docker inspect -f \"{{.State.Running}}\" tp-linux >nul 2>&1 || docker compose up -d --build && docker exec -it tp-linux fish"
-      ],
-      "icon": "terminal-linux"
-    }
-  },
-  "terminal.integrated.defaultProfile.linux": "TP Linux (Docker Fish)",
-  "terminal.integrated.defaultProfile.osx": "TP Linux (Docker Fish)",
-  "terminal.integrated.defaultProfile.windows": "TP Linux (Docker Fish)",
   "terminal.integrated.fontFamily": "'RecMonoLinear Nerd Font', 'JetBrainsMono Nerd Font', 'CaskaydiaCove Nerd Font', 'MesloLGS Nerd Font', monospace",
-  "python.defaultInterpreterPath": "/usr/bin/python3",
-  "task.allowAutomaticTasks": "on"
+  "python.defaultInterpreterPath": "/home/student/.local/share/mise/shims/python",
+  "jupyter.jupyterServerType": "local",
+  "extensions.autoUpdate": true,
+  "extensions.autoCheckUpdates": true
 }
